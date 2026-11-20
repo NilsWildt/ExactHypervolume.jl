@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    name: Tests (Julia 1.13, Ubuntu)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: julia-actions/setup-julia@v2
+        with:
+          version: "1.13"
+      - uses: julia-actions/cache@v2
+      - uses: julia-actions/julia-buildpkg@v1
+      - uses: julia-actions/julia-runtest@v1
+        with:
+          coverage: false
+
+  qa:
+    name: QA gates (Aqua, ExplicitImports, JET, StrictMode, Runic)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: julia-actions/setup-julia@v2
+        with:
+          version: "1.13"
+      - uses: julia-actions/cache@v2
+      - name: Instantiate the QA environment
+        run: julia --project=qa -e 'using Pkg; Pkg.instantiate()'
+      - name: QA gates
+        run: julia --project=qa qa/run.jl
+      - name: Runic format check
+        run: julia --project=qa -m Runic --check src/ test/ qa/run.jl
