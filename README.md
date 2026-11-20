@@ -1,5 +1,7 @@
 # ExactHypervolume.jl
 
+[![CI](https://github.com/NilsWildt/ExactHypervolume.jl/actions/workflows/ci.yml/badge.svg)](https://github.com/NilsWildt/ExactHypervolume.jl/actions/workflows/ci.yml)
+
 Exact hypervolume indicator for multi-objective optimization, in pure Julia with
 no external dependencies.
 
