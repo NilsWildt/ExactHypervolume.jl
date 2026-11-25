@@ -14,7 +14,7 @@ never decreases; once it reaches the best score found so far, the slice cannot w
 is skipped. The selected slice is the same with and without pruning.
 
 Pruning is off by default. In `bench/boxuhv.jl` it skips 20–89% of the slices; with 3
-and 4 objectives (76–331 boxes) that makes the selection 1.3–2.1× faster, with 10
+and 4 objectives (76–331 boxes) that makes the selection 1.3–2.4× faster, with 10
 objectives (18 000–24 000 boxes) about 2× slower, because there the bound needs most of
 a pass over the boxes before it triggers, about as long as scoring the slice itself.
 

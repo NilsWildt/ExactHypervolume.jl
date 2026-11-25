@@ -98,3 +98,12 @@ function time_updates(reps)
 end
 time_updates(1)
 @printf("\nupdate cost, 4D: %.3f ms per add_point! call (mean over 20 × 10 calls)\n", 1000 * time_updates(20))
+
+# Feasible-only UHV: 4 seeds plus 12 sphere points in 4D, above the unit sphere, at the
+# default quadrature level.
+let pts = vcat(unit_seeds(4), sample_front(MersenneTwister(2), :sphere, 4, 12))
+    R = BoxRegion(pts, zeros(4), ones(4))
+    F = SeparableFront((:sq, :sq, :sq, :sq), 1.0)
+    t = timeit(() -> feasible_uhv(R, F), 5)
+    @printf("feasible_uhv, 4D sphere, %d boxes: %.0f ms\n", nboxes(R), 1000t)
+end

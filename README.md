@@ -183,7 +183,8 @@ Boxes entirely above the front count in full, boxes below it not at all. For a b
 front cuts, two dimensions are integrated in closed form and each further one by
 tanh-sinh quadrature, split where the front crosses the box's corners (the only places
 where the integrand is not smooth). The default step `2^-3` agrees with `2^-7` to
-1e-14. In 4D, 4 seed points plus 12 points on the sphere (401 boxes) take about 0.2 s.
+1e-14. In 4D, 4 seed points plus 12 points on the sphere (401 boxes) take about 0.2 s
+(`bench/boxuhv.jl`, same machine as below).
 
 ### Correctness
 
@@ -212,13 +213,13 @@ warm-up; Apple M4 Pro, Julia 1.13.4.
 
 | m  | boxes  | slices | sampled | box | box+prune | speedup | pruned | same slice |
 |---:|-------:|-------:|--------:|----:|----------:|--------:|-------:|:----------:|
-| 3  | 76          | 1000 | 0.11 s      | 0.29–0.35 ms | 0.16–0.20 ms | 570–680× | 84–89% | yes |
-| 4  | 304–331     | 1000 | 0.29–0.30 s | 0.96–1.5 ms  | 0.76–1.0 ms  | 290–380× | 65–79% | yes |
-| 10 | 18 017–23 776 | 50 | 0.13–0.17 s | 5.1–9.1 ms   | 9.6–20 ms    | 19–26×   | 20–48% | yes |
+| 3  | 76          | 1000 | 0.11 s      | 0.28–0.34 ms | 0.13–0.17 ms | 650–830× | 84–89% | yes |
+| 4  | 304–331     | 1000 | 0.29–0.30 s | 0.93–1.5 ms  | 0.72–0.96 ms | 315–400× | 65–79% | yes |
+| 10 | 18 017–23 776 | 50 | 0.13–0.18 s | 5.1–9.1 ms   | 9.8–20 ms    | 19–27×   | 20–48% | yes |
 
 The sampled A4 is never above the exact one and lies below it by up to 3·10⁻⁵, because
 100 outcomes miss the interior kink where the maximum lies. Adding one found point to
-the 4D region (`add_point!`, 4 seeds plus up to 10 points) costs about 0.016 ms.
+the 4D region (`add_point!`, 4 seeds plus up to 10 points) costs about 0.015 ms.
 
 ### Limits
 

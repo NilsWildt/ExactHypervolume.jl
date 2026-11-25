@@ -44,8 +44,11 @@ asserted with `@allocated == 0` in `test/test_quality.jl`.
 `test_compiled(ExactHypervolume; guarantees = (:typestable,))` covers everything
 else. The allocating entry points (`hypervolume`, `contributions`,
 `contribution`, `least_contributor`, `uncertain_hypervolume_bounds`,
-`expected_hypervolume`) allocate a workspace by design; the StrictMode sweep
-reports them as `noalloc` failures every run and that report is expected.
+`expected_hypervolume`) allocate a workspace by design, and the box-region functions
+(`BoxRegion`, `add_point!`, `slice_profile`, `acquisition`, `select_slice`,
+`feasible_volume`, `feasible_uhv`) allocate box and breakpoint lists by design; the
+StrictMode sweep reports them as `noalloc` failures every run and that report is
+expected.
 
 ## Compatibility policy
 
