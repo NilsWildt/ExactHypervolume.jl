@@ -13,6 +13,7 @@ using .Oracle
     include("test_contributions.jl")
     include("test_uncertain.jl")
     include("test_uncertain_region.jl")
+    include("test_box_region.jl")
     include("test_api.jl")
     include("test_docstrings.jl")
     include("test_quality.jl")

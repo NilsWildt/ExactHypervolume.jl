@@ -40,6 +40,17 @@ end
         expected_hypervolume(gauss, refv; samples = 64, rng = MersenneTwister(1))
     ) isa NamedTuple
 
+    # Box decomposition: every acquisition rule returns the profile's float type.
+    R = BoxRegion([P[:, j] ./ 8 for j in 1:6], zeros(4), ones(4))
+    @test @inferred(uhv_with(R, fill(0.5, 4))) isa Float64
+    prof = @inferred slice_profile(R, fill(0.5, 3))
+    for rule in (:mean, :A1, :A2, :A3, :A4, :A5, :A6)
+        @test @inferred(acquisition(prof, rule)) isa Float64
+    end
+    @test @inferred(select_slice(R, [fill(0.5, 3), fill(0.25, 3)])) isa
+        NamedTuple{(:index, :score, :pruned), Tuple{Int, Float64, Int}}
+    @test @inferred(feasible_uhv(R, SeparableFront((:sq, :sq, :sq, :sq), 1.0))) isa Float64
+
     # Float32 must not silently promote to Float64.
     P32 = Float32.(P)
     ref32 = Float32.(refv)

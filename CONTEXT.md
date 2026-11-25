@@ -3,10 +3,10 @@
 ## Purpose
 
 Computes the exact hypervolume indicator of a Pareto front under minimization,
-plus exclusive contributions, uncertainty-aware variants and the volume of the
-uncertain region of a front, with no external
-dependencies. Built for indicator-driven multi-objective optimizers that call it
-in an inner loop, which is why every `!` variant is allocation-free.
+plus exclusive contributions, uncertainty-aware variants, the volume of the
+uncertain region of a front, and exact scoring of ε-constraint slices by a box
+decomposition of that region. Built for indicator-driven multi-objective optimizers
+that call it in an inner loop, which is why every `!` variant is allocation-free.
 
 It deliberately does **not** implement maximization (negate your objectives), the
 weighted-sum or R2 indicators, or any approximate hypervolume algorithm.
@@ -25,6 +25,12 @@ weighted-sum or R2 indicators, or any approximate hypervolume algorithm.
 | frontier | the nondominated `(x, y)` staircase kept by the 3D sweep | `ws.sky_x`, `ws.sky_y` |
 | corner | the extreme realization of a box-uncertain front | `_bounds_corner!` |
 | uncertain region | the points of a box that no front point dominates and that dominate no front point (the UHV of active ε-constraint methods); computed from two hypervolumes, refused when one point is strictly below another in every objective | `uncertain_region_volume` |
+| box region | the uncertain region stored as disjoint boxes, updated per found point; its volume equals `uncertain_region_volume` on a front | `BoxRegion`, `add_point!`, `uhv` |
+| slice | fixed values `ε` of the first `M − 1` objectives; the last objective is the optimized one, its unknown optimum is the outcome `ỹ` | `ε` arguments |
+| outcome range | the interval the exact solve of a slice can return | `outcome_range` |
+| slice profile | remaining UHV of a slice as a piecewise linear, concave function of `ỹ` | `SliceProfile`, `slice_profile` |
+| acquisition | closed-form score of a slice profile with `ỹ` uniform, rules `:A1`–`:A6`, `:mean` | `acquisition`, `select_slice` |
+| feasible UHV | the part of the region above a known separable front | `SeparableFront`, `feasible_uhv` |
 
 ## Load-bearing signatures
 
@@ -45,10 +51,10 @@ reports them as `noalloc` failures every run and that report is expected.
 
 - Minimum Julia: **1.13**. There is no LTS support, so StrictMode may live in the
   developer environment without splitting CI.
-- Dependencies: `Random`, `Statistics` — stdlibs only. `Test`, `Random`,
-  `Statistics` in `test/`; Aqua, ExplicitImports, JET, StrictMode, StrictModeTest,
-  BenchmarkTools in `qa/` only. Neither set ever enters `[deps]` beyond the two
-  stdlibs.
+- Dependencies: `Random`, `Statistics` (stdlibs) and `StaticArrays`, which the box
+  decomposition needs for its fixed-length corners. `Test`, `Random`, `Statistics` in
+  `test/`; Aqua, ExplicitImports, JET, StrictMode, StrictModeTest, BenchmarkTools in
+  `qa/` only. Neither set ever enters `[deps]`.
 
 ## Deliberate choices
 
@@ -73,6 +79,11 @@ reports them as `noalloc` failures every run and that report is expected.
   earlier version probed candidates in descending inclusive-volume order with an
   early exit; that ordering was a heuristic, and the genuine zero cases are
   already detected exactly in `O(n·d)` by `_contrib_limit!`.
+- **`select_slice` returns a key of `slices`** (it iterates `eachindex`), so
+  `slices[index]` is the selected slice for any axes. It refuses an empty `slices`.
+- **The box-region internals `_mean_phi`, `_above`, `_TanhSinh` and `_φ`, and the
+  fields `R.lo`, `R.hi`, `F.phi`, `F.c`, are relied on by downstream scripts**; keep
+  their names and signatures.
 - Minimization only — matches the drafts, keeps every hot path branch-free.
 - API names cleaned up from the drafts: `exclusive_hv` → `contribution`,
   `UncertainBoxPoint` → `BoxPoint`, `WFGWorkspace` retained (it holds the sweeps'
@@ -107,5 +118,10 @@ No `# juliacheck: ignore:` pragmas and no `@strict_exempt` anywhere.
 - `test/helpers.jl` generates dyadic-coordinate fronts so oracle agreement is
   exact rather than tolerance-dependent, and defines `ShiftedVector` so the
   1-based contract can be tested without an OffsetArrays dependency.
+- `src/box_region.jl`, `slice_profile.jl`, `acquisition.jl`, `select_slice.jl` and
+  `feasible.jl` hold the box decomposition; `test/test_box_region.jl` checks it against
+  its own brute-force UHV (coordinate compression) and against
+  `uncertain_region_volume`.
 - `qa/run.jl` is the gate, `qa/juliacheck.sh` is advisory-only,
-  `bench/benchmarks.jl` produces the README table.
+  `bench/benchmarks.jl` produces the hypervolume table in the README and
+  `bench/boxuhv.jl` the box-decomposition table.

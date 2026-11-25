@@ -33,6 +33,27 @@ function exercise()
     uncertain_region_volume([0.0 0.5 1.0; 1.0 0.5 0.0], [0.0, 0.0], [1.0, 1.0])
     gauss = [GaussianPoint([0.5], [0.1]), GaussianPoint([1.0], [0.1])]
     expected_hypervolume(gauss, [4.0]; samples = 64, rng = MersenneTwister(2))
+    front = [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0], [0.5, 0.5, 0.5]]
+    R = BoxRegion(front, zeros(3), ones(3))
+    add_point!(R, [0.2, 0.6, 0.6])
+    uhv(R)
+    nboxes(R)
+    uhv_with(R, [0.3, 0.3, 0.3])
+    outcome_range(R, [0.4, 0.4])
+    P = slice_profile(R, [0.4, 0.4])
+    slice_profile(R, [0.4, 0.4]; window = (0.1, 0.9))
+    for rule in (:mean, :A1, :A2, :A3, :A4, :A5, :A6)
+        acquisition(P, rule)
+    end
+    expected_uhv(P)
+    uhv_std(P)
+    worst_uhv(P)
+    slices = [[0.2, 0.3], [0.5, 0.5], [0.7, 0.1]]
+    select_slice(R, slices)
+    select_slice(R, slices; prune = true)
+    F = SeparableFront((:sq, :sq, :sq), 1.0)
+    feasible_volume(zeros(3), ones(3), F)
+    feasible_uhv(R, F)
     return nothing
 end
 exercise()
@@ -88,6 +109,17 @@ let
         (least_contributor, (Matrix{Float64}, Vector{Float64})),
         (least_contributor!, (Vector{Float64}, Matrix{Float64}, Vector{Float64}, W)),
         (uncertain_region_volume, (Matrix{Float64}, Vector{Float64}, Vector{Float64})),
+        # `BoxRegion(points, lower, upper)` is left out: it reads the number of
+        # objectives from `length(lower)`, so building the `SVector` type is a runtime
+        # dispatch by design. Everything behind that barrier is covered below.
+        (add_point!, (BoxRegion{3, Float64}, Vector{Float64})),
+        (uhv_with, (BoxRegion{3, Float64}, Vector{Float64})),
+        (outcome_range, (BoxRegion{3, Float64}, Vector{Float64})),
+        (slice_profile, (BoxRegion{3, Float64}, Vector{Float64})),
+        (acquisition, (SliceProfile{Float64}, Symbol)),
+        (select_slice, (BoxRegion{3, Float64}, Vector{Vector{Float64}})),
+        (feasible_volume, (Vector{Float64}, Vector{Float64}, SeparableFront{3})),
+        (feasible_uhv, (BoxRegion{3, Float64}, SeparableFront{3})),
     ]
     for (f, types) in signatures
         try
