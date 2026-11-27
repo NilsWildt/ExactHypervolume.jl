@@ -35,6 +35,9 @@
     @test uncertain_region_volume([[0.0, 1.0], [0.5, 0.5], [1.0, 0.0]], [0.0, 0.0], [1.0, 1.0]) ==
         0.5
 
+    # BoxRegion / uhv
+    @test uhv(BoxRegion([[0.0, 1.0], [0.5, 0.5], [1.0, 0.0]], [0.0, 0.0], [1.0, 1.0])) == 0.5
+
     # BoxPoint / GaussianPoint show
     @test string(BoxPoint([0.9, 3.8], [1.1, 4.2])) ==
         "BoxPoint{Float64}([0.9, 3.8], [1.1, 4.2])"
